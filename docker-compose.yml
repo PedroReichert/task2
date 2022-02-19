@@ -1,0 +1,59 @@
+version: '3.7'
+
+services:
+  # PHP-FPM - Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: app
+    restart: unless-stopped
+    tty: true
+    working_dir: /var/www
+
+    volumes:
+      - ./:/var/www
+      - ./docker-files/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+
+    networks:
+      - default
+
+  # NGINX - Service
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    restart: unless-stopped
+    tty: true
+
+    ports:
+      - "8100:80"
+      - "8143:443"
+
+    volumes:
+      - ./:/var/www
+      - ./docker-files/nginx/conf.d/:/etc/nginx/conf.d/
+
+    networks:
+      - default
+
+  # MariaDB - Service
+  db:
+    image: mysql:5.7
+    container_name: db
+    restart: unless-stopped
+    tty: true
+
+    ports:
+      - "127.0.0.1:3306:3306"
+
+    environment:
+      MYSQL_DATABASE: task2
+      MYSQL_ROOT_PASSWORD: root
+
+    volumes:
+      - ./docker-files/mysql/db:/var/lib/mysql
+      - ./docker-files/mysql/my.cnf:/etc/mysql/my.cnf
+
+    networks:
+      - default
